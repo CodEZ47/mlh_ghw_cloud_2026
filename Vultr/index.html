@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chaos FC Penalty Arena</title>
+    <style>
+      :root {
+        --ink: #0b1016;
+        --glow: #27f0ff;
+        --pink: #ff4fd8;
+        --lime: #5eff64;
+        --danger: #ff4f6f;
+        --panel: rgba(10, 16, 24, 0.84);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: #fff;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 20% 10%, #2d1352 0%, transparent 30%),
+          radial-gradient(circle at 80% 90%, #133a50 0%, transparent 35%),
+          linear-gradient(135deg, #070a10 0%, #160f26 55%, #0c1a21 100%);
+        padding: 20px;
+      }
+
+      .arcade {
+        width: min(1020px, 100%);
+        border: 4px solid #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow:
+          0 0 0 5px #000,
+          0 0 30px rgba(39, 240, 255, 0.45),
+          0 0 65px rgba(255, 79, 216, 0.2);
+        background: #05080d;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: linear-gradient(90deg, #001e35, #2b0d3b);
+        border-bottom: 3px solid rgba(255, 255, 255, 0.35);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+
+      .topbar .badge {
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        border-radius: 8px;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.35);
+      }
+
+      .arena {
+        position: relative;
+        height: 620px;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, #114f9e 0 26%, transparent 26%),
+          linear-gradient(180deg, #10d660 26%, #0e8738 100%);
+      }
+
+      .stands {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 185px;
+        background: repeating-linear-gradient(
+          90deg,
+          #1b2538 0 12px,
+          #2a3550 12px 24px,
+          #111827 24px 36px,
+          #2d3752 36px 48px
+        );
+        border-bottom: 3px solid rgba(255, 255, 255, 0.25);
+      }
+
+      .crowd-glow {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.08) 0 8px,
+          rgba(0, 0, 0, 0) 8px 16px
+        );
+        opacity: 0.4;
+      }
+
+      .ad-strip {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 185px;
+        height: 38px;
+        background: linear-gradient(90deg, #ff2a70, #ff7f00, #ff2a70);
+        border-top: 2px solid #fff;
+        border-bottom: 2px solid #fff;
+        color: #fff;
+        font-weight: 900;
+        letter-spacing: 1px;
+        display: grid;
+        place-items: center;
+        text-shadow: 2px 2px 0 #000;
+      }
+
+      .pitch {
+        position: absolute;
+        inset: 210px 0 0;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.06) 0 26px,
+            rgba(0, 0, 0, 0.08) 26px 52px
+          ),
+          linear-gradient(180deg, #24df6f 0%, #13893c 100%);
+      }
+
+      .pitch::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(
+            75deg,
+            transparent 14%,
+            rgba(255, 255, 255, 0.35) 14.6%,
+            transparent 15.2%
+          ),
+          linear-gradient(
+            -75deg,
+            transparent 14%,
+            rgba(255, 255, 255, 0.35) 14.6%,
+            transparent 15.2%
+          ),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 24%);
+        pointer-events: none;
+      }
+
+      .goal-crowd {
+        position: absolute;
+        left: 50%;
+        top: 8px;
+        transform: translateX(-50%);
+        width: 360px;
+        height: 66px;
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .goal-fan {
+        position: relative;
+        width: 30px;
+        height: 40px;
+        border: 2px solid #0a1016;
+        border-radius: 10px 10px 12px 12px;
+        background: linear-gradient(180deg, #ffe44f, #ff59a9 52%, #5ddfff);
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+        animation: fanHop 650ms ease-in-out infinite alternate;
+        transform-origin: center bottom;
+        box-shadow: 0 2px 0 #000;
+      }
+
+      .goal-fan:nth-child(odd) {
+        animation-duration: 520ms;
+      }
+
+      .goal-fan:nth-child(3n) {
+        animation-duration: 780ms;
+      }
+
+      @keyframes fanHop {
+        from {
+          transform: translateY(0) rotate(-3deg);
+        }
+        to {
+          transform: translateY(-4px) rotate(3deg);
+        }
+      }
+
+      .fan-bubble {
+        position: absolute;
+        left: 50%;
+        top: -10px;
+        transform: translate(-50%, 8px) scale(0.7);
+        padding: 1px 6px;
+        border: 2px solid #111;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #101010;
+        font-size: 11px;
+        font-weight: 900;
+        white-space: nowrap;
+        opacity: 0;
+        transition:
+          transform 180ms ease,
+          opacity 180ms ease;
+        box-shadow: 2px 2px 0 #111;
+      }
+
+      .fan-bubble.pop {
+        opacity: 1;
+        transform: translate(-50%, -12px) scale(1);
+      }
+
+      .goal {
+        position: absolute;
+        top: 26px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 118px;
+        border: 5px solid #f6f6f6;
+        border-bottom: 8px solid #f6f6f6;
+        border-radius: 0 0 14px 14px;
+        background:
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.2) 0 12px,
+            transparent 12px 24px
+          ),
+          repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.18) 0 10px,
+            transparent 10px 20px
+          );
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.7);
+        z-index: 2;
+      }
+
+      .keeper {
+        position: absolute;
+        top: 54px;
+        left: 50%;
+        width: 62px;
+        height: 96px;
+        transform: translateX(-50%);
+        z-index: 4;
+        pointer-events: none;
+        animation: keeperBounce 380ms ease-in-out infinite alternate;
+      }
+
+      @keyframes keeperBounce {
+        from {
+          transform: translateX(-50%) translateY(0);
+        }
+        to {
+          transform: translateX(-50%) translateY(-2px);
+        }
+      }
+
+      .keeper-head {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        transform: translateX(-50%);
+        border-radius: 50%;
+        border: 2px solid #0c0c0c;
+        background: #efb28a;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+      }
+
+      .keeper-body {
+        position: absolute;
+        top: 18px;
+        left: 50%;
+        width: 28px;
+        height: 34px;
+        transform: translateX(-50%);
+        border: 2px solid #0b1016;
+        border-radius: 8px;
+        background: linear-gradient(180deg, #ffd900, #ff46aa);
+      }
+
+      .keeper-arm {
+        position: absolute;
+        top: 24px;
+        width: 24px;
+        height: 8px;
+        border: 2px solid #0b1016;
+        border-radius: 999px;
+        background: #efb28a;
+      }
+
+      .keeper-arm.left {
+        left: -4px;
+        transform: rotate(18deg);
+      }
+
+      .keeper-arm.right {
+        right: -4px;
+        transform: rotate(-18deg);
+      }
+
+      .keeper-leg {
+        position: absolute;
+        top: 50px;
+        width: 12px;
+        height: 28px;
+        border: 2px solid #0b1016;
+        border-radius: 10px;
+        background: #20344f;
+      }
+
+      .keeper-leg.left {
+        left: 18px;
+      }
+
+      .keeper-leg.right {
+        right: 18px;
+      }
+
+      .target {
+        position: absolute;
+        top: 95px;
+        left: 50%;
+        width: 24px;
+        height: 24px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 8px rgba(39, 240, 255, 0.9);
+        z-index: 5;
+      }
+
+      .target::before,
+      .target::after {
+        content: "";
+        position: absolute;
+        background: #fff;
+      }
+
+      .target::before {
+        width: 2px;
+        height: 32px;
+        left: 50%;
+        top: -6px;
+        transform: translateX(-50%);
+      }
+
+      .target::after {
+        width: 32px;
+        height: 2px;
+        top: 50%;
+        left: -6px;
+        transform: translateY(-50%);
+      }
+
+      .player {
+        position: absolute;
+        left: 29%;
+        bottom: 54px;
+        width: 72px;
+        height: 128px;
+        z-index: 4;
+      }
+
+      .player .head {
+        position: absolute;
+        top: 0;
+        left: 22px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f1b184;
+        border: 3px solid #111;
+      }
+
+      .player .body {
+        position: absolute;
+        top: 26px;
+        left: 14px;
+        width: 44px;
+        height: 52px;
+        border: 3px solid #111;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #1e55ff, #0f2d84);
+      }
+
+      .player .leg-left,
+      .player .leg-right {
+        position: absolute;
+        top: 75px;
+        width: 14px;
+        height: 46px;
+        border-radius: 12px;
+        border: 3px solid #111;
+        background: #1e2b3e;
+        transform-origin: top center;
+      }
+
+      .player .leg-left {
+        left: 18px;
+      }
+
+      .player .leg-right {
+        left: 38px;
+      }
+
+      .player.kicking .leg-right {
+        animation: kick 350ms ease;
+      }
+
+      @keyframes kick {
+        0% {
+          transform: rotate(0deg);
+        }
+        35% {
+          transform: rotate(-34deg);
+        }
+        100% {
+          transform: rotate(0deg);
+        }
+      }
+
+      .ball {
+        position: absolute;
+        left: 50%;
+        bottom: 36px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid #111;
+        background: radial-gradient(
+          circle at 35% 30%,
+          #fff 0 38%,
+          #d9d9d9 39% 100%
+        );
+        transform: translateX(-50%);
+        z-index: 6;
+      }
+
+      .trail {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        pointer-events: none;
+        animation: fade 400ms ease forwards;
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 1;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: scale(2.8);
+        }
+      }
+
+      .hud-left,
+      .hud-right {
+        position: absolute;
+        bottom: 14px;
+        z-index: 8;
+      }
+
+      .hud-left {
+        left: 14px;
+      }
+
+      .hud-right {
+        right: 14px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .dpad {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        background: rgba(5, 10, 16, 0.7);
+        position: relative;
+        backdrop-filter: blur(2px);
+      }
+
+      .dpad button {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        color: #fff;
+        background: rgba(39, 240, 255, 0.22);
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .dpad button:active {
+        transform: scale(0.94);
+      }
+
+      .up {
+        top: 8px;
+        left: 43px;
+      }
+
+      .down {
+        bottom: 8px;
+        left: 43px;
+      }
+
+      .left {
+        left: 8px;
+        top: 43px;
+      }
+
+      .right {
+        right: 8px;
+        top: 43px;
+      }
+
+      .btn {
+        border: 2px solid #fff;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        color: #fff;
+        background: var(--panel);
+        cursor: pointer;
+        text-shadow: 1px 1px 0 #000;
+      }
+
+      .shoot {
+        background: linear-gradient(135deg, #00a3ff, #0067ff);
+      }
+
+      .curve {
+        background: linear-gradient(135deg, #ff4fd8, #b038ff);
+      }
+
+      .reset {
+        background: linear-gradient(135deg, #ff6f4f, #ff2f49);
+      }
+
+      .message {
+        position: absolute;
+        left: 50%;
+        bottom: 22px;
+        transform: translateX(-50%);
+        min-width: 320px;
+        max-width: 80%;
+        text-align: center;
+        padding: 8px 12px;
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        border-radius: 10px;
+        background: rgba(4, 10, 16, 0.65);
+        z-index: 8;
+        font-weight: 700;
+      }
+
+      .scanlines {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10;
+        background: repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03) 0 2px,
+          rgba(0, 0, 0, 0) 2px 4px
+        );
+      }
+
+      @media (max-width: 900px) {
+        .arena {
+          height: 540px;
+        }
+
+        .player {
+          left: 22%;
+          transform: scale(0.85);
+          transform-origin: bottom left;
+        }
+
+        .goal {
+          width: 240px;
+          height: 98px;
+        }
+
+        .goal-crowd {
+          width: 300px;
+          top: 10px;
+        }
+
+        .goal-fan {
+          width: 24px;
+          height: 34px;
+          font-size: 13px;
+        }
+
+        .keeper {
+          transform: translateX(-50%) scale(0.88);
+          transform-origin: top center;
+        }
+
+        .message {
+          min-width: 240px;
+          font-size: 0.9rem;
+        }
+
+        .dpad {
+          width: 98px;
+          height: 98px;
+        }
+
+        .dpad button {
+          width: 30px;
+          height: 30px;
+        }
+
+        .up,
+        .down {
+          left: 34px;
+        }
+
+        .left,
+        .right {
+          top: 34px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="arcade">
+      <header class="topbar">
+        <div class="badge">Chaos FC Penalty Mode</div>
+        <div class="badge">
+          GOALS: <span id="goals">0</span> | SHOTS: <span id="shots">0</span> |
+          SAVES: <span id="saves">0</span>
+        </div>
+      </header>
+
+      <section class="arena" id="arena">
+        <div class="stands"><div class="crowd-glow"></div></div>
+        <div class="ad-strip">ULTRA FOOTBALL PIXEL LEAGUE • CHAOS FC</div>
+
+        <div class="pitch" id="pitch">
+          <div id="goalCrowd" class="goal-crowd" aria-hidden="true"></div>
+          <div id="goal" class="goal"></div>
+          <div id="keeper" class="keeper">
+            <div class="keeper-head"></div>
+            <div class="keeper-body"></div>
+            <div class="keeper-arm left"></div>
+            <div class="keeper-arm right"></div>
+            <div class="keeper-leg left"></div>
+            <div class="keeper-leg right"></div>
+          </div>
+          <div id="target" class="target" aria-hidden="true"></div>
+
+          <div id="player" class="player" aria-hidden="true">
+            <div class="head"></div>
+            <div class="body"></div>
+            <div class="leg-left"></div>
+            <div class="leg-right"></div>
+          </div>
+
+          <div id="ball" class="ball"></div>
+        </div>
+
+        <div class="hud-left">
+          <div class="dpad" aria-label="aim controls">
+            <button class="up" data-dir="up">▲</button>
+            <button class="down" data-dir="down">▼</button>
+            <button class="left" data-dir="left">◀</button>
+            <button class="right" data-dir="right">▶</button>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <button id="shootBtn" class="btn shoot">SHOOT</button>
+          <button id="curveBtn" class="btn curve">CURVE: OFF</button>
+          <button id="resetBtn" class="btn reset">RESET</button>
+        </div>
+
+        <p id="message" class="message">
+          Move target with the D-pad or arrow keys, then press SHOOT.
+        </p>
+        <div class="scanlines"></div>
+      </section>
+    </main>
+
+    <script>
+      const pitch = document.getElementById("pitch");
+      const goal = document.getElementById("goal");
+      const keeper = document.getElementById("keeper");
+      const goalCrowd = document.getElementById("goalCrowd");
+      const ball = document.getElementById("ball");
+      const target = document.getElementById("target");
+      const player = document.getElementById("player");
+
+      const goalsEl = document.getElementById("goals");
+      const shotsEl = document.getElementById("shots");
+      const savesEl = document.getElementById("saves");
+      const messageEl = document.getElementById("message");
+
+      const shootBtn = document.getElementById("shootBtn");
+      const curveBtn = document.getElementById("curveBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const dpadButtons = Array.from(document.querySelectorAll(".dpad button"));
+
+      const tauntsGoal = [
+        "GOOOAL! Crowd throws imaginary confetti!",
+        "Top bins! Keeper is sending an apology letter.",
+        "Absolute rocket. Net needs therapy.",
+      ];
+      const tauntsSave = [
+        "Saved! Keeper powered by pure drama.",
+        "Big stop. Gloves are suspiciously magnetic.",
+        "Denied. Keeper flexed for the camera.",
+      ];
+      const tauntsMiss = [
+        "Missed! That ball is in another postcode.",
+        "Wide. Nice confidence, questionable geometry.",
+        "Almost! If the goal were three meters wider.",
+      ];
+
+      const fanFaces = ["🧢", "😆", "🤪", "🕺", "👽", "🐸", "🧅", "🦖"];
+      const fanCheer = ["⚽", "GOOO!", "WHEE", "🔥", "OLE!", "🥳", "HAHA"];
+      const fanBoo = ["BOOO", "👎", "OOF", "NOPE", "🍅", "😤", "BRUH"];
+
+      function buildGoalCrowd() {
+        if (!goalCrowd) {
+          return;
+        }
+        goalCrowd.innerHTML = "";
+
+        for (let index = 0; index < 11; index += 1) {
+          const fan = document.createElement("div");
+          fan.className = "goal-fan";
+          fan.style.filter = `hue-rotate(${Math.floor(Math.random() * 360)}deg)`;
+
+          const face = document.createElement("span");
+          face.textContent = randomFrom(fanFaces);
+
+          const bubble = document.createElement("span");
+          bubble.className = "fan-bubble";
+          bubble.textContent = randomFrom(fanCheer);
+
+          fan.appendChild(face);
+          fan.appendChild(bubble);
+          goalCrowd.appendChild(fan);
+        }
+      }
+
+      function popGoalCrowd(mood = "mixed") {
+        if (!goalCrowd) {
+          return;
+        }
+
+        const fans = goalCrowd.querySelectorAll(".goal-fan");
+        fans.forEach((fan) => {
+          const bubble = fan.querySelector(".fan-bubble");
+          if (!bubble) {
+            return;
+          }
+
+          const cheer =
+            mood === "cheer"
+              ? true
+              : mood === "boo"
+                ? false
+                : Math.random() > 0.4;
+
+          bubble.textContent = cheer
+            ? randomFrom(fanCheer)
+            : randomFrom(fanBoo);
+          bubble.classList.remove("pop");
+          setTimeout(() => {
+            bubble.classList.add("pop");
+          }, Math.random() * 170);
+        });
+      }
+
+      const state = {
+        goals: 0,
+        shots: 0,
+        saves: 0,
+        curve: false,
+        shooting: false,
+        targetX: 50,
+        targetY: 22,
+        keeperTarget: 50,
+        keeperSpeed: 0.18,
+        keeperDir: 1,
+      };
+
+      function randomFrom(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function updateScore() {
+        goalsEl.textContent = state.goals;
+        shotsEl.textContent = state.shots;
+        savesEl.textContent = state.saves;
+      }
+
+      function setMessage(text) {
+        messageEl.textContent = text;
+      }
+
+      function updateTargetUI() {
+        target.style.left = `${state.targetX}%`;
+        target.style.top = `${state.targetY}%`;
+      }
+
+      function moveTarget(dx, dy) {
+        state.targetX = Math.max(16, Math.min(84, state.targetX + dx));
+        state.targetY = Math.max(8, Math.min(42, state.targetY + dy));
+        updateTargetUI();
+      }
+
+      function spawnTrail(x, y) {
+        const t = document.createElement("span");
+        t.className = "trail";
+        t.style.left = `${x - 4}px`;
+        t.style.top = `${y - 4}px`;
+        pitch.appendChild(t);
+        setTimeout(() => t.remove(), 400);
+      }
+
+      function kickAnimation() {
+        player.classList.remove("kicking");
+        void player.offsetWidth;
+        player.classList.add("kicking");
+      }
+
+      function shoot() {
+        if (state.shooting) {
+          return;
+        }
+        state.shooting = true;
+        kickAnimation();
+
+        const pitchRect = pitch.getBoundingClientRect();
+        const goalRect = goal.getBoundingClientRect();
+        const keeperRect = keeper.getBoundingClientRect();
+
+        const startX = pitchRect.width * 0.5;
+        const startY = pitchRect.height - 48;
+        const endX = (state.targetX / 100) * pitchRect.width;
+        const endY = (state.targetY / 100) * pitchRect.height;
+
+        const frames = 28;
+        let frame = 0;
+
+        const curveOffset = state.curve ? (Math.random() > 0.5 ? 28 : -28) : 0;
+
+        const timer = setInterval(() => {
+          frame += 1;
+          const t = frame / frames;
+          const arc = Math.sin(Math.PI * t) * 16;
+          const x = startX + (endX - startX) * t + curveOffset * t * (1 - t);
+          const y = startY + (endY - startY) * t - arc;
+
+          ball.style.left = `${x}px`;
+          ball.style.bottom = `${pitchRect.height - y - 12}px`;
+          spawnTrail(x, y);
+
+          if (frame >= frames) {
+            clearInterval(timer);
+
+            const ballX = x;
+            const ballY = y;
+
+            const goalX1 = goalRect.left - pitchRect.left;
+            const goalX2 = goalRect.right - pitchRect.left;
+            const goalY1 = goalRect.top - pitchRect.top;
+            const goalY2 = goalRect.bottom - pitchRect.top;
+
+            const inGoal =
+              ballX >= goalX1 &&
+              ballX <= goalX2 &&
+              ballY >= goalY1 &&
+              ballY <= goalY2;
+
+            const keeperX1 = keeperRect.left - pitchRect.left - 10;
+            const keeperX2 = keeperRect.right - pitchRect.left + 10;
+            const keeperY1 = keeperRect.top - pitchRect.top - 6;
+            const keeperY2 = keeperRect.bottom - pitchRect.top + 6;
+            const blocked =
+              ballX >= keeperX1 &&
+              ballX <= keeperX2 &&
+              ballY >= keeperY1 &&
+              ballY <= keeperY2;
+
+            state.shots += 1;
+
+            if (inGoal && !blocked) {
+              state.goals += 1;
+              setMessage(randomFrom(tauntsGoal));
+              popGoalCrowd("cheer");
+            } else if (inGoal && blocked) {
+              state.saves += 1;
+              setMessage(randomFrom(tauntsSave));
+              popGoalCrowd("mixed");
+            } else {
+              setMessage(randomFrom(tauntsMiss));
+              popGoalCrowd("boo");
+            }
+
+            updateScore();
+
+            setTimeout(() => {
+              ball.style.left = "50%";
+              ball.style.bottom = "36px";
+              ball.style.transform = "translateX(-50%)";
+              state.shooting = false;
+            }, 180);
+          }
+        }, 14);
+      }
+
+      function moveKeeper() {
+        state.keeperTarget += state.keeperDir * (Math.random() * 12 + 6);
+
+        if (state.keeperTarget > 74) {
+          state.keeperTarget = 74;
+          state.keeperDir = -1;
+        }
+        if (state.keeperTarget < 26) {
+          state.keeperTarget = 26;
+          state.keeperDir = 1;
+        }
+
+        const current = parseFloat(keeper.style.left || "50");
+        const next =
+          current + (state.keeperTarget - current) * state.keeperSpeed;
+        keeper.style.left = `${next}%`;
+      }
+
+      shootBtn.addEventListener("click", shoot);
+
+      curveBtn.addEventListener("click", () => {
+        state.curve = !state.curve;
+        curveBtn.textContent = `CURVE: ${state.curve ? "ON" : "OFF"}`;
+        setMessage(
+          state.curve
+            ? "Curve shot armed. Bend it like chaos."
+            : "Curve shot disabled.",
+        );
+      });
+
+      resetBtn.addEventListener("click", () => {
+        state.goals = 0;
+        state.shots = 0;
+        state.saves = 0;
+        updateScore();
+        setMessage("Match reset. Fresh keeper, same chaos.");
+        popGoalCrowd("mixed");
+      });
+
+      dpadButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const dir = btn.dataset.dir;
+          if (dir === "up") moveTarget(0, -2.2);
+          if (dir === "down") moveTarget(0, 2.2);
+          if (dir === "left") moveTarget(-2.2, 0);
+          if (dir === "right") moveTarget(2.2, 0);
+        });
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (["ArrowUp", "w", "W"].includes(event.key)) moveTarget(0, -2.2);
+        if (["ArrowDown", "s", "S"].includes(event.key)) moveTarget(0, 2.2);
+        if (["ArrowLeft", "a", "A"].includes(event.key)) moveTarget(-2.2, 0);
+        if (["ArrowRight", "d", "D"].includes(event.key)) moveTarget(2.2, 0);
+        if (event.key === " " || event.key === "Enter") shoot();
+      });
+
+      pitch.addEventListener("click", (event) => {
+        const rect = pitch.getBoundingClientRect();
+        const clickX = ((event.clientX - rect.left) / rect.width) * 100;
+        const clickY = ((event.clientY - rect.top) / rect.height) * 100;
+        state.targetX = Math.max(16, Math.min(84, clickX));
+        state.targetY = Math.max(8, Math.min(42, clickY));
+        updateTargetUI();
+      });
+
+      updateScore();
+      updateTargetUI();
+      buildGoalCrowd();
+      popGoalCrowd("mixed");
+      setInterval(() => popGoalCrowd("mixed"), 1600);
+      setInterval(moveKeeper, 120);
+    </script>
+  </body>
+</html>
